@@ -22,6 +22,7 @@ import socket
 import sys
 import time
 import logging
+import my_logging
 
 HOST, PORT = '0.0.0.0', 5060
 rx_register = re.compile("^REGISTER")
@@ -272,6 +273,7 @@ class UDPHandler(SocketServer.BaseRequestHandler):
         registrar[fromm]=[contact,self.socket,self.client_address,validity]
         self.debugRegister()
         self.sendResponse("200 0K")
+        my_logging.log_register(contact)
         
     def processInvite(self):
         logging.debug("-----------------")
@@ -298,6 +300,7 @@ class UDPHandler(SocketServer.BaseRequestHandler):
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text),text))
+                my_logging.log_invite(origin, destination)
             else:
                 self.sendResponse("480 Temporarily Unavailable")
         else:
@@ -324,6 +327,8 @@ class UDPHandler(SocketServer.BaseRequestHandler):
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug( "---\n<< server send [%d]:\n%s\n---" % (len(text),text))
+                #my_logging.print_log(f"ACK sending to:{destination} ??? - cize hovor sa zacal?")
+                my_logging.log_ack(self.data)
                 
     def processNonInvite(self):
         logging.debug("----------------------")
@@ -383,6 +388,7 @@ class UDPHandler(SocketServer.BaseRequestHandler):
             elif rx_ack.search(request_uri):
                 self.processAck()
             elif rx_bye.search(request_uri):
+                my_logging.log_bye(self.data)
                 self.processNonInvite()
             elif rx_cancel.search(request_uri):
                 self.processNonInvite()
@@ -405,9 +411,11 @@ class UDPHandler(SocketServer.BaseRequestHandler):
             elif rx_notify.search(request_uri):
                 self.sendResponse("200 0K")
             elif rx_code.search(request_uri):
+                #my_logging.print_log(self.data)
+                my_logging.log_code(self.data)
                 self.processCode()
             else:
-                logging.error("request_uri %s" % request_uri)          
+                logging.error("request_uri %s" % request_uri)
                 #print "message %s unknown" % self.data
     
     def handle(self):
@@ -441,4 +449,5 @@ if __name__ == "__main__":
     recordroute = "Record-Route: <sip:%s:%d;lr>" % (ipaddress,PORT)
     topvia = "Via: SIP/2.0/UDP %s:%d" % (ipaddress,PORT)
     server = SocketServer.UDPServer((HOST, PORT), UDPHandler)
+    my_logging.initial_log()
     server.serve_forever()
