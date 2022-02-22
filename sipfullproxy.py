@@ -244,13 +244,14 @@ class UDPHandler(SocketServer.BaseRequestHandler):
             if md:
                 header_expires = md.group(1)
         
-        # Blacklist lokalnych IP adries som dal uplne prec
+        # Blacklist local IP addresses - don't want that
         # if rx_invalid.search(contact) or rx_invalid2.search(contact):
         #     #if registrar.has_key(fromm):
         #     if fromm in registrar:
         #         del registrar[fromm]
         #     self.sendResponse("488 Not Acceptable Here")    
         #     return
+
         if len(contact_expires) > 0:
             expires = int(contact_expires)
         elif len(header_expires) > 0:
@@ -327,7 +328,6 @@ class UDPHandler(SocketServer.BaseRequestHandler):
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug( "---\n<< server send [%d]:\n%s\n---" % (len(text),text))
-                #my_logging.print_log(f"ACK sending to:{destination} ??? - cize hovor sa zacal?")
                 my_logging.log_ack(self.data)
                 
     def processNonInvite(self):
@@ -411,7 +411,6 @@ class UDPHandler(SocketServer.BaseRequestHandler):
             elif rx_notify.search(request_uri):
                 self.sendResponse("200 0K")
             elif rx_code.search(request_uri):
-                #my_logging.print_log(self.data)
                 my_logging.log_code(self.data)
                 self.processCode()
             else:
