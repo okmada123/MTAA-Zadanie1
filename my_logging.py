@@ -22,6 +22,36 @@ def parse_username(line_to_parse:str):
     end_index = line_to_parse.find("@")
     return line_to_parse[start_index:end_index]
 
+def find_last_log(username1:str, username2:str) -> str | None:
+    # Finds last communication in logs, between username1 and username2
+    index = len(CURRENT_APP_RUN)-1
+    while index >= 0:
+        split_line = CURRENT_APP_RUN[index].split(",")
+        index -= 1
+
+        if split_line[1] == "REGISTER":
+            continue
+        else:
+            fromm = split_line[2]
+            to = split_line[3]
+            if (username1 == fromm or username1 == to) and (username2 == fromm or username2 == to):
+                return ",".join(split_line)
+    return None
+
+def find_call_start_log(username1:str, username2:str) -> str:
+    index = len(CURRENT_APP_RUN)-1
+    while index >= 0:
+        split_line = CURRENT_APP_RUN[index].split(",")
+        index -= 1
+
+        if split_line[1] != "CALL STARTED":
+            continue
+        else:
+            fromm = split_line[2]
+            to = split_line[3]
+            if (username1 == fromm or username1 == to) and (username2 == fromm or username2 == to):
+                return ",".join(split_line)
+
 def file_write_line(line:str):
     with open(FILE_NAME, "a") as file:
         file.write(line + "\n")
@@ -35,24 +65,42 @@ def log_register(new_user:str):
     CURRENT_APP_RUN.append(line_to_log)
 
 def log_invite(origin, destination):
-    line_to_log = f"{get_current_time_string()},INVITE,{parse_username_simple(origin)},{parse_username_simple(destination)}"
+    fromm = parse_username_simple(origin)
+    to = parse_username_simple(destination)
+    last_log = find_last_log(fromm, to)
+
+    if last_log == None:
+        #log new call
+        line_to_log = f"{get_current_time_string()},INVITE,{fromm},{to}"
+    else:
+        status = last_log.split(",")[1]
+        if status == "CALL ENDED" or status == "603" or status == "487":
+            line_to_log = f"{get_current_time_string()},INVITE,{fromm},{to}"
+        else:
+            #otherwise it is a request for switch from voice to video and vice versa
+            line_to_log = f"{get_current_time_string()},SWITCH INVITE,{fromm},{to}"
+
     file_write_line(line_to_log)
     CURRENT_APP_RUN.append(line_to_log)
 
 def log_ack(data):
-    #TODO trosku inac, keby bolo viac roznych konverzacii ?
-
-    last_log = CURRENT_APP_RUN[-1].split(",")[1]
-
     fromm = parse_username(data[3])
     to = parse_username(data[4])
+
+    last_log = find_last_log(fromm, to)
+    if last_log == None:
+        return
+    last_log = last_log.split(",")[1]
 
     line_to_log = None
 
     if last_log == "INVITE" or last_log == "200":
         line_to_log = f"{get_current_time_string()},CALL STARTED,{fromm},{to}"
+    elif last_log == "SWITCH INVITE":
+        line_to_log = f"{get_current_time_string()},SWITCH ACK,{fromm},{to}"
     else:
-        pass
+        print("DEBUG: nejaky iny ACK, ktory sa ignoruje") #TODO - delete
+        return
 
     if line_to_log != None:
         CURRENT_APP_RUN.append(line_to_log)
@@ -60,11 +108,13 @@ def log_ack(data):
 
 def log_bye(data):
     now = time.time()
-    started_timestamp = get_timestamp_from_string(CURRENT_APP_RUN[-1].split(",")[0])
-    call_duration = round(now - started_timestamp, 2)
 
     fromm = parse_username(data[2])
     to = parse_username(data[3])
+
+    started_timestamp = get_timestamp_from_string(find_call_start_log(fromm, to).split(",")[0])
+    call_duration = round(now - started_timestamp, 2)
+
 
     line_to_log = f"{get_current_time_string()},CALL ENDED,{fromm},{to},Call duration: {call_duration} seconds"
     
@@ -83,8 +133,6 @@ def log_code(data):
         line_to_log = f"{get_current_time_string()},487,{fromm},{to},Call hung up by {fromm}"
     elif code == "603":
         line_to_log = f"{get_current_time_string()},603,{fromm},{to},Call hung up by {to}"
-    # elif code == "200":
-    #     line_to_log = f"200,{fromm},{to},OK DIK"
 
     if line_to_log != None:
         file_write_line(line_to_log)
