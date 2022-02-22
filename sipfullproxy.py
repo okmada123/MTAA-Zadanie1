@@ -273,7 +273,7 @@ class UDPHandler(SocketServer.BaseRequestHandler):
         registrar[fromm]=[contact,self.socket,self.client_address,validity]
         self.debugRegister()
         self.sendResponse("200 0K")
-        my_logging.log_register(contact)
+        my_logging.log_register(fromm)
         
     def processInvite(self):
         logging.debug("-----------------")
