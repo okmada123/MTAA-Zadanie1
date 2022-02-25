@@ -261,7 +261,8 @@ class UDPHandler(SocketServer.BaseRequestHandler):
             #if registrar.has_key(fromm):
             if fromm in registrar:
                 del registrar[fromm]
-                self.sendResponse("200 0K")
+                #self.sendResponse("200 0K")
+                self.sendResponse("200 OK THANKS")
                 return
         else:
             now = int(time.time())
@@ -273,7 +274,8 @@ class UDPHandler(SocketServer.BaseRequestHandler):
         logging.debug("Expires= %d" % expires)
         registrar[fromm]=[contact,self.socket,self.client_address,validity]
         self.debugRegister()
-        self.sendResponse("200 0K")
+        #self.sendResponse("200 0K")
+        self.sendResponse("200 OK THANKS")
         my_logging.log_register(fromm)
         
     def processInvite(self):
@@ -360,6 +362,18 @@ class UDPHandler(SocketServer.BaseRequestHandler):
         else:
             self.sendResponse("500 Server Internal Error")
                 
+    #go through lines in data, search for 200 OK code and change the value from "200 OK" to "200 OK THANKS"
+    def replace_200_OK(self, data:list[str]) -> list[str]:
+        new_data = []
+        for line in data:
+            if line.find("200 OK") != -1:
+                line = line.replace("200 OK", "200 OK THANKS", 1)
+            elif line.find("200 Ok") != -1:
+                line = line.replace("200 Ok", "200 OK THANKS", 1)
+            new_data.append(line)
+        #print(new_data)
+        return new_data
+
     def processCode(self):
         origin = self.getOrigin()
         if len(origin) > 0:
@@ -368,6 +382,7 @@ class UDPHandler(SocketServer.BaseRequestHandler):
                 socket,claddr = self.getSocketInfo(origin)
                 self.data = self.removeRouteHeader()
                 data = self.removeTopVia()
+                data = self.replace_200_OK(data) #my code
                 #text = string.join(data,"\r\n")
                 #text = "\r\n".join(data)
                 text = "\r\n".join(data).encode("utf-8")
@@ -405,11 +420,14 @@ class UDPHandler(SocketServer.BaseRequestHandler):
             elif rx_update.search(request_uri):
                 self.processNonInvite()
             elif rx_subscribe.search(request_uri):
-                self.sendResponse("200 0K")
+                #self.sendResponse("200 0K")
+                self.sendResponse("200 OK THANKS")
             elif rx_publish.search(request_uri):
-                self.sendResponse("200 0K")
+                #self.sendResponse("200 0K")
+                self.sendResponse("200 OK THANKS")
             elif rx_notify.search(request_uri):
-                self.sendResponse("200 0K")
+                #self.sendResponse("200 0K")
+                self.sendResponse("200 OK THANKS")
             elif rx_code.search(request_uri):
                 my_logging.log_code(self.data)
                 self.processCode()
