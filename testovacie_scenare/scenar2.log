@@ -1,0 +1,10 @@
+===== Starting server (25.02.2022 10:53:42) =====
+25.02.2022 10:53:51,REGISTER,pocophone
+25.02.2022 10:53:56,REGISTER,desktop-linux
+25.02.2022 10:54:05,INVITE,desktop-linux,pocophone
+25.02.2022 10:54:10,CALL STARTED,desktop-linux,pocophone
+25.02.2022 10:54:29,SWITCH INVITE,pocophone,desktop-linux
+25.02.2022 10:54:33,SWITCH ACK,pocophone,desktop-linux
+25.02.2022 10:55:06,SWITCH INVITE,desktop-linux,pocophone
+25.02.2022 10:55:07,SWITCH ACK,desktop-linux,pocophone
+25.02.2022 10:55:15,CALL ENDED,desktop-linux,pocophone,Call duration: 65.89 seconds

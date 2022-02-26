@@ -1,3 +1,4 @@
-*.log
+custom.log
+proxy.log
 __pycache__/
 test.py

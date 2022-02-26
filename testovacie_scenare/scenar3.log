@@ -1,0 +1,10 @@
+===== Starting server (25.02.2022 11:32:08) =====
+25.02.2022 11:32:13,REGISTER,t440s
+25.02.2022 11:32:16,REGISTER,desktop-linux
+25.02.2022 11:32:30,REGISTER,pocophone
+25.02.2022 11:32:48,INVITE,desktop-linux,t440s
+25.02.2022 11:32:49,INVITE,desktop-linux,pocophone
+25.02.2022 11:32:54,CALL STARTED,desktop-linux,t440s
+25.02.2022 11:32:56,CALL STARTED,desktop-linux,pocophone
+25.02.2022 11:33:22,CALL ENDED,desktop-linux,t440s,Call duration: 28.01 seconds
+25.02.2022 11:33:22,CALL ENDED,desktop-linux,pocophone,Call duration: 26.06 seconds
